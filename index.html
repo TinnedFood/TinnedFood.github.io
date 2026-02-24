@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>TinnedFood 资源分享站</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft Yahei", Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .resource-list {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .resource-item:last-child {
+            border-bottom: none;
+        }
+        .resource-name {
+            font-weight: 500;
+        }
+        .resource-size {
+            color: #666;
+            font-size: 14px;
+        }
+        .download-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .download-btn:hover {
+            background-color: #2980b9;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TinnedFood 资源分享站</h1>
+        <p>自动加载 /files/ 目录下的所有资源</p>
+    </header>
+
+    <div class="container">
+        <div class="loading" id="loading">正在加载资源列表...</div>
+        <div class="resource-list" id="resourceList"></div>
+    </div>
+
+    <footer>
+        <p>© 2026 TinnedFood | 资源分享站</p>
+    </footer>
+
+    <script>
+        // 你的 GitHub 用户名和仓库名
+        const USERNAME = 'TinnedFood';
+        const REPO = 'TinnedFood.github.io';
+        const DIR = 'files'; // 要读取的目录
+
+        // 调用 GitHub API 获取目录内容
+        fetch(`https://api.github.com/repos/${USERNAME}/${REPO}/contents/${DIR}`)
+            .then(res => res.json())
+            .then(data => {
+                const list = document.getElementById('resourceList');
+                const loading = document.getElementById('loading');
+                loading.style.display = 'none';
+
+                if (data.message === 'Not Found') {
+                    list.innerHTML = '<div class="resource-item"><div class="resource-name">未找到 /files/ 目录，请先在仓库中创建该目录</div></div>';
+                    return;
+                }
+
+                data.forEach(file => {
+                    if (file.type === 'file') {
+                        const item = document.createElement('div');
+                        item.className = 'resource-item';
+                        item.innerHTML = `
+                            <div>
+                                <div class="resource-name">${file.name}</div>
+                                <div class="resource-size">大小: ${formatBytes(file.size)}</div>
+                            </div>
+                            <a href="${file.download_url}" class="download-btn" target="_blank">下载</a>
+                        `;
+                        list.appendChild(item);
+                    }
+                });
+            })
+            .catch(err => {
+                document.getElementById('loading').textContent = '加载失败: ' + err.message;
+            });
+
+        // 格式化文件大小
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
